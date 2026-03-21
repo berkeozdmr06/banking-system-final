@@ -107,8 +107,10 @@ LOCAL_DB_PATH = "/app/data/local_db.json"
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY")
 
 if not ENCRYPTION_KEY:
-    # 🔐 PERSISTENT SECURITY LAYER (ISO 27001 Concept)
-    KEY_PATH = "/app/data/vault.key"
+# 🔐 PERSISTENT SECURITY LAYER (ISO 27001 Concept)
+    DATA_DIR = "/app/data"
+    os.makedirs(DATA_DIR, exist_ok=True)
+    KEY_PATH = os.path.join(DATA_DIR, "vault.key")
     if os.path.exists(KEY_PATH):
         with open(KEY_PATH, "r") as kf:
             ENCRYPTION_KEY = kf.read().strip()
