@@ -222,20 +222,35 @@ def save_local_db(data: dict):
 
 # --- Webhook & Messaging Cluster ---
 WEBHOOK_SUBSCRIBERS = []
+WEBHOOK_HISTORY = []
 
 async def fire_webhook(event_type: str, payload: dict):
     """
     Fires FinTech application-level webhooks (e.g. TransferCreated, AccountDebited)
     to all dynamically subscribed listener URLs asynchronously.
     """
+    event_entry = {
+        "event": event_type, 
+        "payload": payload, 
+        "time": datetime.now().isoformat(),
+        "status": "QUEUED"
+    }
+    WEBHOOK_HISTORY.insert(0, event_entry)
+    if len(WEBHOOK_HISTORY) > 50: WEBHOOK_HISTORY.pop()
+
+    print(f"📡 WEBHOOK EVENT: {event_type} | Data: {payload}") # Structured Logging (6.1.6.4)
+
     if not WEBHOOK_SUBSCRIBERS: return
+    
     headers = {"Content-Type": "application/json"}
     async with httpx.AsyncClient() as client:
         for url in WEBHOOK_SUBSCRIBERS:
             try:
                 # Fire and forget strategy
                 asyncio.create_task(client.post(url, json={"event": event_type, "data": payload}, headers=headers, timeout=2.0))
-            except Exception: pass
+                event_entry["status"] = "SENT"
+            except Exception: 
+                event_entry["status"] = "FAILED"
 
 @app.post("/webhook/subscribe")
 async def subscribe_webhook(req: dict):
@@ -244,6 +259,19 @@ async def subscribe_webhook(req: dict):
     if url not in WEBHOOK_SUBSCRIBERS:
         WEBHOOK_SUBSCRIBERS.append(url)
     return {"status": "SUCCESS", "message": f"Webhook subscribed to {url}"}
+
+@app.get("/admin/webhook_status")
+async def get_webhook_status():
+    return {
+        "subscribers": WEBHOOK_SUBSCRIBERS,
+        "history": WEBHOOK_HISTORY
+    }
+
+@app.post("/webhook/test_fire")
+async def test_webhook():
+    payload = {"msg": "System Health Check", "node": "OZAS-CLN-01"}
+    await fire_webhook("SystemHealthPing", payload)
+    return {"status": "SUCCESS"}
 
 @app.post("/debug/refill")
 async def debug_refill(req: dict):

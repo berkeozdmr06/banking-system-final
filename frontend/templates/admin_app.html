@@ -112,6 +112,21 @@
         <div class="section-title">Client Roster</div>
         <div class="list-group" id="admin-user-list"></div>
 
+        <div class="section-title">Webhook Management (6.3.4)</div>
+        <div class="list-group" style="padding:20px;">
+            <input type="text" id="webhook-url" class="ios-input" placeholder="Listener URL (e.g. webhook.site)">
+            <div style="display:flex; gap:10px;">
+                <button class="ios-button" style="margin-top:0;" onclick="subscribeWebhook()">Subscribe</button>
+                <button class="ios-button green" style="margin-top:0;" onclick="testWebhook()">Test Event</button>
+            </div>
+            <div id="webhook-status" style="margin-top:15px; font-size:14px; color:var(--ios-subtext);">
+                Subscribers: <span id="webhook-sub-count">0</span>
+            </div>
+        </div>
+
+        <div class="section-title">External Event Log (6.3.5)</div>
+        <div id="webhook-history-list" class="list-group" style="border: 1px dashed var(--ios-separator); background: transparent;"></div>
+
         <div class="section-title">System Audit Trail</div>
         <div class="list-group" style="margin-bottom:40px;" id="admin-audit-list"></div>
     </div>
@@ -228,7 +243,51 @@
                         <div class="log-time">${new Date(log.time).toLocaleTimeString()}</div>
                     </div>
                 `).join('');
+
+                // Fetch Webhook Status
+                try {
+                    const whResp = await fetch('/admin/webhook_status');
+                    const whData = await whResp.json();
+                    document.getElementById('webhook-sub-count').innerText = whData.subscribers.length;
+                    renderWebhookHistory(whData.history);
+                } catch(e) {}
             }
+        }
+
+        function renderWebhookHistory(history) {
+            const list = document.getElementById('webhook-history-list');
+            list.innerHTML = '';
+            history.slice(0, 10).forEach(ev => {
+                const div = document.createElement('div');
+                div.className = 'log-item';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="color:var(--ios-blue); font-weight:700; font-size:13px;">📡 ${ev.event}</span>
+                        <span class="${ev.status === 'SENT' ? 'success-badge' : 'fail-badge'}" style="font-size:10px;">${ev.status}</span>
+                    </div>
+                    <div style="font-family:monospace; font-size:10px; margin:4px 0; color:var(--ios-subtext); word-break:break-all; max-height:40px; overflow:hidden;">
+                        ${JSON.stringify(ev.payload)}
+                    </div>
+                    <div class="log-time">${new Date(ev.time).toLocaleTimeString()}</div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function subscribeWebhook() {
+            const url = document.getElementById('webhook-url').value;
+            if(!url) return;
+            const resp = await fetch('/webhook/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url})
+            });
+            const data = await resp.json();
+            alert("Webhook Subscribed!");
+        }
+
+        async function testWebhook() {
+            await fetch('/webhook/test_fire', {method: 'POST'});
         }
 
         function renderUserDashboard(data) {
