@@ -181,7 +181,7 @@ def load_local_db() -> dict:
             "password": "0635",
             "iban": "TR420006200000054802618970",
             "role": "PRIVATE_BANKING (A+)",
-            "is_admin": False,
+            "is_admin": True,
             "balance": 183459.11,
             "status": "ACTIVE",
             "hold_amount": 0.0,
