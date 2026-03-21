@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+httpx
+yfinance
+pandas
+cryptography
+python-dotenv
+jinja2
+python-multipart
+PyJWT==2.8.0
