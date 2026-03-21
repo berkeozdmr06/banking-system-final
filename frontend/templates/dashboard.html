@@ -2771,13 +2771,6 @@
                 </svg>
             </div>
 
-            <!-- ADMIN SHIELD ICON (RBAC) -->
-            <div class="notification-wrap" id="nav-admin-btn" onclick="showAdminPinModal()" title="Admin Console" style="cursor:pointer; display:none;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff5000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-            </div>
-
             <!-- LOGOUT ICON (matches bell style) -->
             <div class="notification-wrap" id="logout-btn" onclick="triggerLogout()" title="Secure Logout"
                 style="cursor:pointer;">
@@ -3744,6 +3737,23 @@
     <!-- Admin Audit Panel (PCI DSS) -->
     <!-- ====== CUSTOMER PROFILE SECTION ====== -->
     <div id="section-profile" class="app-section main-content-section" style="display:none;">
+        <div style="background:#0a0a0a; border:1px solid #222; border-radius:12px; padding:24px; margin-top:24px; display:flex; align-items:center; gap:32px;">
+            <div id="profile-avatar-letter" style="width:64px; height:64px; background:linear-gradient(135deg, #333, #000); color:var(--rh-green); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; border:1px solid #333;">A</div>
+            <div style="flex:1;">
+                <div id="profile-username-display" style="font-size:24px; font-weight:700; color:#fff;">Berke Özdemir</div>
+                <div style="display:flex; gap:16px; margin-top:6px; font-size:12px; color:#666; font-family:'JetBrains Mono', monospace;">
+                    <span>TC: <span id="profile-tc-display" style="color:#888;"></span></span>
+                    <span>Role: <span id="profile-role-display" style="color:var(--rh-green);">CLIENT</span></span>
+                </div>
+            </div>
+            
+            <!-- Admin ONLY Master Button -->
+            <div id="admin-hub-card" style="display:none; background:rgba(255, 80, 0, 0.05); border:1px solid rgba(255, 80, 0, 0.2); padding:16px 24px; border-radius:12px; align-items:center; gap:20px;">
+                <div style="font-family:'JetBrains Mono', monospace; font-size:11px; color:#ff5000; letter-spacing:1px;">● MASTER CONSOLE ACTIVE</div>
+                <button onclick="showAdminPinModal()" style="background:#ff5000; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer;">Open Terminal →</button>
+            </div>
+        </div>
+
         <div style="display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap; align-items: stretch;">
             <!-- LEFT: Security & Access Logs (User perspective) -->
             <div
@@ -4961,6 +4971,10 @@
             // Avatar letter
             const avatarEl = document.getElementById('profile-avatar-letter');
             if (avatarEl) avatarEl.innerText = tc.charAt(0).toUpperCase();
+
+            // Admin Logic
+            const hub = document.getElementById('admin-hub-card');
+            if (hub) hub.style.display = APP_STATE.is_admin ? 'flex' : 'none';
 
             // Fill profile fields
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
