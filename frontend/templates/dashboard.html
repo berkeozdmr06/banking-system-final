@@ -3754,45 +3754,53 @@
             </div>
         </div>
 
-        <div id="profile-access-logs" style="display: none; gap: 24px; margin-top: 24px; flex-wrap: wrap; align-items: stretch;">
-            <!-- LEFT: Security & Access Logs (User perspective) -->
-            <div
-                style="flex: 2; min-width: 500px; background:#0a0a0a; border:1px solid #222; border-radius:12px; padding:28px; font-family:'JetBrains Mono', monospace; display:flex; flex-direction:column;">
-                <div
-                    style="color:#666; font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-bottom:16px;">
-                    Security & Access Logs</div>
-
-                <div style="flex:1; overflow-x:auto;">
-                    <table class="audit-table" style="width:100%; text-align:left; min-width: 600px;">
-                        <thead>
-                            <tr style="color:#555; background:#111;">
-                                <th style="padding:12px; font-weight:normal;">Timestamp</th>
-                                <th style="padding:12px; font-weight:normal;">IP Address</th>
-                                <th style="padding:12px; font-weight:normal;">Location / ISP</th>
-                                <th style="padding:12px; font-weight:normal;">Event Type</th>
-                                <th style="padding:12px; font-weight:normal;">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="profile-security-body">
-                            <!-- Javascript will inject security logs here -->
-                        </tbody>
-                    </table>
+        <!-- Admin Dashboard Vitals (Modern Dashboard UI) -->
+        <div id="admin-dashboard-hub" style="display:none; flex-direction:column; gap:16px; margin-top:24px;">
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                <!-- Stat Card: Daily Volume (Simulated dynamic data) -->
+                <div style="flex:1; min-width:240px; background:#0a0a0a; border:1px solid #222; border-radius:12px; padding:24px;">
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">📈 Daily FinTech Volume</div>
+                    <div style="font-size:28px; font-weight:700; color:#fff;" id="admin-hacim-sayac">3,485,210.00 ₺</div>
+                </div>
+                <!-- Stat Card: System Load -->
+                <div style="flex:1; min-width:240px; background:#0a0a0a; border:1px solid #222; border-radius:12px; padding:24px;">
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">🔋 System Load Status</div>
+                    <div style="display:flex; align-items:center; gap:15px;">
+                        <div style="flex:1; height:6px; background:#1a1a1a; border-radius:3px; position:relative;">
+                            <div style="position:absolute; left:0; top:0; height:100%; width:4%; background:var(--rh-green); box-shadow:0 0 10px var(--rh-green); border-radius:3px;"></div>
+                        </div>
+                        <span style="font-size:16px; font-weight:700; color:var(--rh-green); font-family:'JetBrains Mono', monospace;">4.2%</span>
+                    </div>
+                </div>
+                <!-- Stat Card: Active User Sessions -->
+                <div style="flex:1; min-width:240px; background:#0a0a0a; border:1px solid #222; border-radius:12px; padding:24px;">
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">👤 Active Global Sessions</div>
+                    <div style="font-size:28px; font-weight:700; color:var(--rh-green);">42 <span style="font-size:12px; color:#666; font-weight:400; margin-left:5px;">LIVE</span></div>
                 </div>
             </div>
 
-            <!-- RIGHT: Technical Audit Log (ISO Stream) -->
-            <div
-                style="flex: 1; min-width: 380px; background:#000; border:1px solid #111; border-radius:12px; padding:28px; display:flex; flex-direction:column;">
-                <h3
-                    style="font-size: 11px; color: var(--rh-green); margin-bottom: 20px; letter-spacing: 2px; text-transform: uppercase; font-family:'JetBrains Mono', monospace;">
-                    Technical Audit Stream (ISO-20022 / AES-256)</h3>
-                <div class="audit-log-viewer" id="audit-log-viewer"
-                    style="height: 500px; border-left: 1px solid #222; padding-left: 15px;">
-                    <!-- Logs stream here -->
+            <div style="display:flex; gap:16px; flex-wrap:wrap;">
+                <!-- Action Card: Global Controls -->
+                <div style="flex:1.5; min-width:300px; background:#0d0d0d; border:1px solid #1a1a1a; border-radius:12px; padding:24px; display:flex; flex-direction:column; gap:16px;">
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#555; text-transform:uppercase; letter-spacing:1px;">⚡ Global Action Console</div>
+                    <div style="display:flex; gap:12px;">
+                        <button onclick="showNotification('WEBHOOK: Triggering master sync sequence...', '#ff5000')" style="flex:1; background:#111; border:1px solid #333; color:#aaa; padding:12px; border-radius:8px; cursor:pointer; font-size:11px;">TRIGGER WEBHOOK</button>
+                        <button onclick="showNotification('MAINTENANCE: Scheduled for next cycle.', '#888')" style="flex:1; background:#111; border:1px solid #333; color:#aaa; padding:12px; border-radius:8px; cursor:pointer; font-size:11px;">MTN MODE OFF</button>
+                    </div>
                 </div>
-                <div style="margin-top: 20px; font-size: 9px; color: #444; font-family: 'JetBrains Mono', monospace;">
-                    STATUS: SECURE_CHANNEL_ACTIVE<br>
-                    ENCRYPTION: AES-GCM-256
+                <!-- Priority Tasks -->
+                <div style="flex:1; min-width:300px; background:#0d0d0d; border:1px solid #1a1a1a; border-radius:12px; padding:24px;">
+                    <div style="font-family:'JetBrains Mono', monospace; font-size:10px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;">🔔 Pending Approval Queue</div>
+                    <div style="display:flex; flex-direction:column; gap:12px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+                            <span style="color:#aaa;">KYC Verifications</span>
+                            <span style="background:rgba(255,80,0,0.1); color:#ff5000; padding:2px 8px; border-radius:4px; font-size:11px;">5 UNREAD</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+                            <span style="color:#aaa;">Credit Limit Increase</span>
+                            <span style="background:rgba(255,80,0,0.1); color:#ff5000; padding:2px 8px; border-radius:4px; font-size:11px;">3 REQUESTS</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -4974,7 +4982,9 @@
 
             // Admin Logic
             const hub = document.getElementById('admin-hub-card');
+            const dashboardHub = document.getElementById('admin-dashboard-hub');
             if (hub) hub.style.display = APP_STATE.is_admin ? 'flex' : 'none';
+            if (dashboardHub) dashboardHub.style.display = APP_STATE.is_admin ? 'flex' : 'none';
 
             // Fill profile fields
             const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
