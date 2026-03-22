@@ -8687,6 +8687,13 @@
                         banner.style.display = isMaint ? 'block' : 'none';
                     }
 
+                    // 1b. Real-time Notifications for Admin
+                    if (data.pending_kyc > (APP_STATE.last_kyc_count || 0)) {
+                        showNotification(`🔔 NEW KYC REQUEST: Verification Node ${data.pending_kyc} is active.`, "var(--rh-green)");
+                        if (window.navigator.vibrate) window.navigator.vibrate(100);
+                    }
+                    APP_STATE.last_kyc_count = data.pending_kyc;
+
                     // 2. Sync Admin Console Elements (If visible)
                     const volEl = document.getElementById('admin-stat-volume');
                     const sessEl = document.getElementById('admin-stat-sessions');
