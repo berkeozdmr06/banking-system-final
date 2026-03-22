@@ -4807,13 +4807,6 @@
 
                             // Refresh ledger if currently open
                             if (APP_STATE.activeMode === 'ledger') renderLedger();
-                        }
-                        lastKnownBalance = data.balance;
-                    }
-                }
-            } catch (e) {}
-        }, 2000);
-
         // --- OZAS System Report Data ---
         (function loadSystemReport() {
             // Live clock
@@ -6924,6 +6917,8 @@
                     else if (timeframe === '1W') targetLen = isCrypto ? 168 : 40; // 7d at 1h / 5d at 1h
                     else if (timeframe === '1M') targetLen = 30; // 30d at 1d
                     else if (timeframe === '3M') targetLen = 90; // 90d at 1d
+                    else if (timeframe === '1Y') targetLen = 365; // 1y at 1d
+                    else if (timeframe === 'ALL') targetLen = 52 * 10; // 10 years at 1wk
                     
                     const cleanQuotes = rawQuotes.length > targetLen ? rawQuotes.slice(-targetLen) : rawQuotes;
 
@@ -8680,69 +8675,68 @@
         }
 
         let adminPollingInterval = null;
-        function startAdminPolling() {
-            if (adminPollingInterval) clearInterval(adminPollingInterval);
-            console.log("[ADMIN] Polling service synchronized.");
+        function startAdminStatusSync() {
+            if (!APP_STATE.is_admin) return;
+            console.log("[ADMIN] Initializing Live Monitor Core...");
             
-            adminPollingInterval = setInterval(async () => {
-                if (!APP_STATE.tc_identity) return;
-                try {
-                    const resp = await fetch('/admin/system_health');
-                    if (!resp.ok) return;
-                    
-                    const data = await resp.json();
-                    
-                    // 1. Sync System Wide Alert Banner
-                    const banner = document.getElementById('maintenance-alert-banner');
-                    if (banner) {
-                        const isMaint = !!data.maintenance_mode;
-                        banner.style.display = isMaint ? 'block' : 'none';
-                    }
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/health`;
+            let ws = new WebSocket(wsUrl);
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log("[WS] Package Received:", data);
+                
+                // 1. Sync System Wide Alert Banner
+                const banner = document.getElementById('maintenance-alert-banner');
+                if (banner) banner.style.display = !!data.maintenance_mode ? 'block' : 'none';
 
-                    // 1b. Real-time Notifications for Admin
-                    if (data.pending_kyc > (APP_STATE.last_kyc_count || 0)) {
-                        showNotification(`🔔 NEW KYC REQUEST: Verification Node ${data.pending_kyc} is active.`, "var(--rh-green)");
-                        if (window.navigator.vibrate) window.navigator.vibrate(100);
-                    }
-                    APP_STATE.last_kyc_count = data.pending_kyc;
+                // 2. Admin Stats (WS Powered High-Speed Sync)
+                const volEl = document.getElementById('admin-stat-volume');
+                const sessEl = document.getElementById('admin-stat-sessions');
+                const kycEl = document.getElementById('admin-stat-kyc');
+                const credEl = document.getElementById('admin-stat-credit');
+                const loadLine = document.getElementById('admin-load-line');
+                const loadPct = document.getElementById('admin-load-pct');
 
-                    // 2. Sync Admin Console Elements (If visible)
-                    const volEl = document.getElementById('admin-stat-volume');
-                    const sessEl = document.getElementById('admin-stat-sessions');
-                    const loadText = document.getElementById('admin-stat-load-text');
-                    const loadBar = document.getElementById('admin-stat-load-bar');
-                    const mBtn = document.getElementById('btn-admin-maint');
-
-                    if (volEl) volEl.innerText = (data.daily_volume || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
-                    if (sessEl) sessEl.innerText = data.active_sessions;
-                    if (loadText) loadText.innerText = (data.load || 0).toFixed(1) + '%';
-                    if (loadBar) loadBar.style.width = (data.load || 0) + '%';
-                    
-                    if (mBtn) {
-                        if (data.maintenance_mode) {
-                            mBtn.innerText = "MTN MODE ON";
-                            mBtn.style.background = "var(--rh-red)";
-                            mBtn.style.color = "#fff";
-                        } else {
-                            mBtn.innerText = "MTN MODE OFF";
-                            mBtn.style.background = "#111";
-                            mBtn.style.color = "#aaa";
-                        }
-                    }
-
-                    // 3. Sync Webhook Status
-                    try {
-                        const wResp = await fetch('/admin/webhook_status');
-                        const wData = await wResp.json();
-                        const subEl = document.getElementById('admin-webhook-sub-list');
-                        if (subEl) subEl.innerText = `ACTIVE SUBS: ${wData.subscribers.length}`;
-                    } catch (we) {}
-                } catch (e) {
-                    console.warn("[ADMIN] Sync Latency / Error:", e);
+                if (volEl) volEl.innerText = (data.daily_volume || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
+                if (sessEl) sessEl.innerHTML = `<span style="color:var(--rh-green); font-weight:900;">${data.active_sessions}</span> LIVE`;
+                if (kycEl) kycEl.innerText = `${data.pending_kyc} PENDING`;
+                if (credEl) credEl.innerText = `${data.pending_credit} REQUESTS`;
+                if (loadPct) loadPct.innerText = (data.load || 0).toFixed(1) + '%';
+                if (loadLine) loadLine.style.width = (data.load || 0) + '%';
+                
+                // 3. Status Notification check (if counts increase)
+                if (data.pending_kyc > (APP_STATE.last_kyc_count || 0)) {
+                    showNotification(`🔔 NEW KYC REQUEST: Verification Node ${data.pending_kyc} is active.`, "var(--rh-green)");
                 }
-            }, 3000);
+                APP_STATE.last_kyc_count = data.pending_kyc;
+            };
+            
+            ws.onclose = () => {
+                console.warn("[WS] Socket closed. Falling back to background polling in 10s...");
+                setTimeout(startAdminStatusSync, 10000); 
+            };
         }
-        
+
+        async function initApp() {
+            console.log("[OASIS] Initializing Virtual Financial Matrix. Environment: Production");
+            const activeTC = localStorage.getItem('active_tc');
+            
+            if (activeTC) {
+                // Background Sync while loading UI
+                await syncAppData(activeTC);
+                if (APP_STATE.is_admin) startAdminStatusSync(); 
+            } else {
+                console.warn("[CORE] No valid node session. Redirecting to AUTH_GATEWAY.");
+                window.location.href = '/';
+            }
+
+            // Bind UI Elements
+            setInterval(updateClock, 1000);
+            updateClock();
+        }
+
         // Heartbeat Service (Keep session alive & sync real-time user count)
         setInterval(async () => {
              if (APP_STATE.tc_identity) {
@@ -8756,8 +8750,8 @@
              }
         }, 30000);
 
-        // Start polling on init
-        startAdminPolling();
+        // Start App
+        initApp();
     </script>
     <!-- SYSTEM APPROVAL MODAL -->
     <div id="admin-task-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(15px); z-index:99999; align-items:center; justify-content:center;">
