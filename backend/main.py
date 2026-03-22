@@ -145,33 +145,29 @@ def load_local_db() -> dict:
                     
     needs_save = False
 
-    # Ensure Immortality of Master Root Node
-    root_tc = "11111111110"
-    if root_tc not in db:
-        db[root_tc] = {
-            "tc_identity": root_tc,
+    # --- SYSTEM ADMINISTRATIVE NODE (NEW POLICY) ---
+    admin_id = "admin"
+    if admin_id not in db:
+        db[admin_id] = {
+            "tc_identity": admin_id,
+            "password": "0635",
             "iban": "TR3600064000000000000000ADMIN",
-            "role": "ROOT_ADMIN",
+            "role": "SYSTEM_ADMIN",
             "is_admin": True,
-            "balance": 5750000.0,
+            "balance": 99999999.0,
             "status": "ACTIVE",
             "transactions": [],
             "auditHistory": [
-                {"user": root_tc, "action": "SYSTEM_INIT", "hash": "SYS_BOOT_001", "outcome": "SUCCESS", "time": (datetime.now() - timedelta(days=30)).isoformat()},
-                {"user": root_tc, "action": "VAULT_OPEN", "hash": "VLT_OK_2291", "outcome": "APPROVED", "time": (datetime.now() - timedelta(days=15)).isoformat()},
-                {"user": root_tc, "action": "KYC_ADMIN_VERIFIED", "hash": "KYC_ADM_001", "outcome": "APPROVED", "time": (datetime.now() - timedelta(days=10)).isoformat()},
+                {"user": admin_id, "action": "INITIAL_ADMIN_BOOT", "hash": "ADM_INIT_001", "outcome": "SUCCESS", "time": datetime.now().isoformat()},
             ],
-            "ledgerHistory": [
-                {"txid": "TX-A001", "desc": "SYSTEM VAULT INITIALIZATION", "debit": 0, "credit": 5000000.00, "move": 5000000.00, "balance": 5000000.00, "time": (datetime.now() - timedelta(days=30)).isoformat()},
-                {"txid": "TX-A002", "desc": "OZAS CAPITAL RESERVE DEPOSIT", "debit": 0, "credit": 500000.00, "move": 500000.00, "balance": 5500000.00, "time": (datetime.now() - timedelta(days=15)).isoformat()},
-                {"txid": "TX-A003", "desc": "REGULATORY COMPLIANCE FEE", "debit": 25000.00, "credit": 0, "move": -25000.00, "balance": 5475000.00, "time": (datetime.now() - timedelta(days=7)).isoformat()},
-                {"txid": "TX-A004", "desc": "SYSTEM OPERATING INCOME", "debit": 0, "credit": 275000.00, "move": 275000.00, "balance": 5750000.00, "time": (datetime.now() - timedelta(days=2)).isoformat()},
-            ]
+            "ledgerHistory": []
         }
         needs_save = True
-    
-    # Always ensure admin IBAN is correct
-    db["11111111110"]["iban"] = "TR3600064000000000000000ADMIN"
+
+    # CLEANUP: Remove Legacy Root Account if exists
+    if "11111111110" in db:
+        del db["11111111110"]
+        needs_save = True
 
     # Auto-Inject Test User (Berke) for Mobile Flow
     test_tc = "54802618970"
@@ -180,7 +176,7 @@ def load_local_db() -> dict:
             "tc_identity": test_tc,
             "password": "0635",
             "iban": "TR420006200000054802618970",
-            "role": "PRIVATE_BANKING (A+)",
+            "role": "CLIENT",
             "is_admin": False,
             "balance": 183459.11,
             "status": "ACTIVE",
