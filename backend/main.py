@@ -508,7 +508,7 @@ async def register_user(reg_data: dict):
         "investmentBalance": 0.0,
         "loans": 0.0,
         "status": "ACTIVE",
-        "kyc_verified": True,
+        "kyc_verified": False, # Requires Admin Approval
         "portfolio": [],
         "ledgerHistory": [],
         "auditHistory": [
@@ -643,16 +643,16 @@ async def get_system_health():
     kyc_pend = 0
     cred_pend = 0
     
+    # Static Simulation lists for UI seed (but dynamic counts prevail)
+    # Filter users needing verification
     for tc in db_data:
         node = db_data[tc]
         if isinstance(node, dict):
             u_count += 1
             total_liquidity += float(node.get("balance", 0))
-            total_liquidity += float(node.get("termDeposit", 0))
-            total_liquidity += float(node.get("investmentBalance", 0))
-            if node.get("role") == "CLIENT":
+            if node.get("kyc_verified") == False:
                 kyc_pend += 1
-            if float(node.get("balance", 0)) > 50000:
+            if float(node.get("balance", 0)) > 250000: # High value flags
                 cred_pend += 1
 
     # Real-time Active Session Logic (users seen in last 60s)
@@ -677,7 +677,47 @@ async def get_system_health():
 @app.post("/admin/approve_task")
 async def approve_admin_task(req: dict):
     task_type = req.get("type")
-    # Simulation: Just return success
+    node_tc = req.get("tc")
+    action = req.get("action")
+    
+    db_data = load_local_db()
+    
+    if node_tc in db_data:
+        user = db_data[node_tc]
+        if task_type == 'KYC':
+            user["kyc_verified"] = (action == 'APPROVE')
+            if action == 'REJECT':
+                user["status"] = "REJECTED"
+        
+        save_local_db(db_data)
+        return {"status": "SUCCESS", "message": f"Task finalized for node {node_tc}"}
+        
+    return {"status": "FAILED", "detail": "NODE_NOT_FOUND"}
+
+@app.get("/admin/pending_tasks")
+async def get_pending_tasks():
+    db_data = load_local_db()
+    kyc_list = []
+    credit_list = []
+    
+    for tc, node in db_data.items():
+        if isinstance(node, dict) and node.get("kyc_verified") == False:
+            kyc_list.append({
+                "tc": tc,
+                "date": node.get("time", datetime.now().isoformat())[:16].replace("T", " "),
+                "status": "PENDING"
+            })
+            
+        # Mock credits for premium feel
+        if isinstance(node, dict) and float(node.get("balance", 0)) > 250000:
+            credit_list.append({
+                "tc": tc,
+                "request": "1.000.000 ₺ LMT",
+                "date": "2026-03-22 23:55",
+                "status": "URGENT"
+            })
+            
+    return {"kyc": kyc_list, "credits": credit_list}
     return {"status": "SUCCESS", "message": f"Task '{task_type}' approved and updated in ledger."}
 
 @app.get("/admin/system_state")
