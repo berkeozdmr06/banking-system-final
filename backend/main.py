@@ -220,6 +220,31 @@ def save_local_db(data: dict):
     except Exception as e:
         print(f"Error saving DB: {e}")
 
+# --- Real-time Session Tracking & Task Queue ---
+USER_HEARTBEATS = {} # {tc: last_seen_timestamp}
+
+@app.post("/admin/heartbeat")
+async def register_heartbeat(req: dict):
+    tc = req.get("tc_identity")
+    if tc:
+        USER_HEARTBEATS[tc] = time.time()
+    return {"status": "ALIVE"}
+
+@app.get("/admin/pending_tasks")
+async def get_pending_tasks():
+    db = load_local_db()
+    kyc_list = []
+    credit_list = []
+    
+    # Simulate a few more for the UI if needed, but primarily use DB
+    for tc, u in db.items():
+        if u.get("role") == "CLIENT":
+            kyc_list.append({"tc": tc, "type": "KYC_VERIF", "status": "PENDING", "date": "2026-03-22"})
+        if float(u.get("balance", 0)) > 50000:
+            credit_list.append({"tc": tc, "type": "LIMIT_INC", "request": "50,000 ₺", "date": "2026-03-22"})
+            
+    return {"kyc": kyc_list, "credits": credit_list}
+
 # --- Webhook & Messaging Cluster ---
 WEBHOOK_SUBSCRIBERS = []
 WEBHOOK_HISTORY = []
@@ -587,6 +612,83 @@ async def get_admin_app(request: Request):
     return response
 
 # --- System-Wide Admin Routes ---
+SYSTEM_MAINTENANCE_MODE = False
+
+@app.post("/admin/trigger_webhook")
+async def trigger_admin_webhook(payload: dict):
+    event = payload.get("event", "MANUAL_ADMIN_TRIGGER")
+    data = payload.get("data", {"triggered_by": "ROOT_ADMIN", "node": "OZAS-CLN-01"})
+    await fire_webhook(event, data)
+    return {"status": "SUCCESS", "message": f"Webhook '{event}' fired successfully."}
+
+@app.post("/admin/maintenance_toggle")
+async def toggle_maintenance(req: dict):
+    global SYSTEM_MAINTENANCE_MODE
+    SYSTEM_MAINTENANCE_MODE = not SYSTEM_MAINTENANCE_MODE
+    status_str = "ACTIVE" if SYSTEM_MAINTENANCE_MODE else "OFF"
+    
+    # Log to system audit history
+    db_data = load_local_db()
+    for tc in db_data:
+        if isinstance(db_data[tc], dict) and "auditHistory" in db_data[tc]:
+            db_data[tc]["auditHistory"].insert(0, {
+                "user": "SYSTEM",
+                "action": f"MAINTENANCE_{status_str}",
+                "hash": "SYS_MAINT_" + datetime.now().strftime("%s"),
+                "outcome": "INFO",
+                "time": datetime.now().isoformat()
+            })
+    save_local_db(db_data)
+    
+    return {"status": "SUCCESS", "maintenance_mode": SYSTEM_MAINTENANCE_MODE}
+
+@app.get("/admin/system_health")
+async def get_system_health():
+    # Force fresh reload of DB to ensure real-time accuracy across nodes
+    db_data = load_local_db()
+    
+    total_liquidity = 0.0
+    u_count = 0
+    kyc_pend = 0
+    cred_pend = 0
+    
+    for tc in db_data:
+        node = db_data[tc]
+        if isinstance(node, dict):
+            u_count += 1
+            total_liquidity += float(node.get("balance", 0))
+            total_liquidity += float(node.get("termDeposit", 0))
+            total_liquidity += float(node.get("investmentBalance", 0))
+            if node.get("role") == "CLIENT":
+                kyc_pend += 1
+            if float(node.get("balance", 0)) > 50000:
+                cred_pend += 1
+
+    # Real-time Active Session Logic (users seen in last 60s)
+    now = time.time()
+    active_count = len([t for t in USER_HEARTBEATS.values() if now - t < 65])
+    if active_count == 0: active_count = 1 # Minimum 1 (The Admin)
+
+    import random
+    load_raw = (u_count * 0.4) + random.uniform(1.2, 2.5)
+    load_rounded = float(int(load_raw * 10) / 10.0) 
+    
+    return {
+        "status": "HEALTHY",
+        "maintenance_mode": SYSTEM_MAINTENANCE_MODE,
+        "load": load_rounded,
+        "active_sessions": active_count,
+        "daily_volume": float(total_liquidity),
+        "pending_kyc": kyc_pend,
+        "pending_credit": cred_pend
+    }
+
+@app.post("/admin/approve_task")
+async def approve_admin_task(req: dict):
+    task_type = req.get("type")
+    # Simulation: Just return success
+    return {"status": "SUCCESS", "message": f"Task '{task_type}' approved and updated in ledger."}
+
 @app.get("/admin/system_state")
 async def get_system_state(tc_identity: str):
     db_data = load_local_db()
