@@ -4805,8 +4805,14 @@
                             updateGlobalBalances();
                             updateUI();
 
-                            // Refresh ledger if currently open
-                            if (APP_STATE.activeMode === 'ledger') renderLedger();
+                        }
+                        lastKnownBalance = data.balance;
+                    }
+                }
+            } catch (e) {
+                console.warn("[SYNC] Local polling node latent.", e);
+            }
+        }, 2000);
         // --- OZAS System Report Data ---
         (function loadSystemReport() {
             // Live clock
@@ -8725,7 +8731,7 @@
             
             if (activeTC) {
                 // Background Sync while loading UI
-                await syncAppData(activeTC);
+                await syncInitialState(); // Fix: Call correct sync function
                 if (APP_STATE.is_admin) startAdminStatusSync(); 
             } else {
                 console.warn("[CORE] No valid node session. Redirecting to AUTH_GATEWAY.");
