@@ -818,6 +818,12 @@
                 </div>
 
                 <div id="register-view" style="display: none;">
+                    <div class="client-toggle" style="justify-content: center; margin-bottom: 20px;">
+                        <input type="text" id="reg-fullname" class="toggle-btn toggle-non-us"
+                            style="width: 100%; text-align: left; padding-left: 20px; border: none; font-weight: 700;"
+                            placeholder="Full Name (First & Last)">
+                    </div>
+
                     <div class="client-toggle" style="justify-content: center; margin-bottom: 5px;">
                         <input type="text" id="tc-input" class="toggle-btn toggle-non-us"
                             style="width: 100%; text-align: left; padding-left: 20px; border: none;"
@@ -1206,6 +1212,7 @@
 
             registerBtn.addEventListener('click', async (e) => {
                 const tcVal = tcInput.value;
+                const nameVal = document.getElementById('reg-fullname').value;
                 const passVal = document.getElementById('reg-password').value;
                 const phoneVal = document.getElementById('reg-phone').value;
                 const tcErrorEl = document.getElementById('tc-error');
@@ -1245,6 +1252,7 @@
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({
                             tc_identity: tcVal,
+                            full_name: nameVal,
                             password: passVal,
                             phone: phoneVal,
                             nationality: document.querySelectorAll('.custom-select')[0].value,
@@ -1256,6 +1264,7 @@
                     const data = await resp.json();
                     if(resp.ok) {
                         localStorage.setItem('active_tc', tcVal);
+                        localStorage.setItem('active_name', data.full_name || 'USER');
                         window.location.href = '/dashboard';
                     } else {
                         tcErrorEl.innerText = data.detail || "Registration failed.";

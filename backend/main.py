@@ -151,6 +151,7 @@ def load_local_db() -> dict:
         db[admin_id] = {
             "tc_identity": admin_id,
             "password": "0635",
+            "full_name": "SYSTEM ADMIN",
             "iban": "TR3600064000000000000000ADMIN",
             "role": "SYSTEM_ADMIN",
             "is_admin": True,
@@ -164,9 +165,9 @@ def load_local_db() -> dict:
         }
         needs_save = True
 
-    # CLEANUP: Remove Legacy Root Account if exists
+    # CLEANUP: Remove Legacy Root Account if exists Safely
     if "11111111110" in db:
-        del db["11111111110"]
+        db.pop("11111111110", None)
         needs_save = True
 
     # Auto-Inject Test User (Berke) for Mobile Flow
@@ -175,6 +176,7 @@ def load_local_db() -> dict:
         db[test_tc] = {
             "tc_identity": test_tc,
             "password": "0635",
+            "full_name": "Berke Özdemir",
             "iban": "TR420006200000054802618970",
             "role": "CLIENT",
             "is_admin": False,
@@ -498,6 +500,7 @@ async def register_user(reg_data: dict):
     # Initialize basic user state
     db_data[tc] = {
         **reg_data,
+        "full_name": reg_data.get("full_name", "NEW USER"),
         "role": "CLIENT",
         "is_admin": False,
         "iban": generate_iban(tc),
@@ -519,18 +522,12 @@ async def register_user(reg_data: dict):
         ]
     }
     save_local_db(db_data)
-    return {"status": "SUCCESS", "message": "User registered successfully"}
+    return {"status": "SUCCESS", "message": "User registered successfully", "full_name": db_data[tc].get("full_name")}
 
 @app.post("/auth/login")
 async def login_user(credentials: dict):
     username = str(credentials.get("username", "")).strip()
     password = credentials.get("password", "")
-    
-    # Master Admin Authentication Proxy
-    is_master_bypass = False
-    if username == "admin" and password == "0635":
-        username = "11111111110"
-        is_master_bypass = True
 
     db_data = load_local_db()
     
@@ -539,8 +536,8 @@ async def login_user(credentials: dict):
     
     user = db_data[username]
     
-    # Standard Password Verification (skip if Master Bypass engaged)
-    if not is_master_bypass and user.get("password") != password:
+    # Standard Password Verification
+    if user.get("password") != password:
         if "auditHistory" not in user: user["auditHistory"] = []
         user["auditHistory"].append({
             "user": username,
@@ -552,10 +549,8 @@ async def login_user(credentials: dict):
         save_local_db(db_data)
         raise HTTPException(status_code=401, detail="INCORRECT_PASSWORD")
     
-    # SYSTEM OVERRIDE: 11111111110 is always the Root Admin
-    if username == "11111111110":
-        user["is_admin"] = True
-        user["role"] = "ROOT_ADMIN"
+    # Role Logic
+    # (Removed legacy admin TC override)
 
     # Add real authentication log to user history
     if "auditHistory" not in user:
@@ -583,12 +578,12 @@ async def login_user(credentials: dict):
     encoded_jwt = jwt.encode(jwt_payload, ENCRYPTION_KEY, algorithm="HS256")
 
     return {
-        "status": "SUCCESS", 
+        "status": "SUCCESS",
         "tc_identity": username,
+        "full_name": user.get("full_name", "CLIENT USER"),
         "is_admin": user.get("is_admin", False),
         "token": encoded_jwt,
-        "token_type": "bearer",
-        "user_data": user
+        "role": user.get("role", "CLIENT")
     }
 
 # 8. Dashboard and Market Routes
