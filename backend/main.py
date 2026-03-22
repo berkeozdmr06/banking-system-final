@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,6 +101,15 @@ if not os.path.exists(static_dir):
     os.makedirs(static_dir)
 
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Root file serving for PWA
+@app.get("/manifest.json")
+async def get_manifest():
+    return FileResponse(os.path.join(static_dir, "manifest.json"))
+
+@app.get("/sw.js")
+async def get_sw():
+    return FileResponse(os.path.join(static_dir, "sw.js"), media_type="application/javascript")
 
 # 3. Encryption & Persistence Configuration
 LOCAL_DB_PATH = "/app/data/local_db.json"
