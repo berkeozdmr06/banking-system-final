@@ -6285,7 +6285,15 @@
                     const swiftTracker = document.getElementById('swift-tracker');
                     if (swiftTracker) swiftTracker.style.display = 'none'; // Reset tracker
                 }
-                if (mode === 'account') renderHistory();
+                if (mode === 'account') {
+                    renderHistory();
+                    const fullName = APP_STATE.full_name || localStorage.getItem('active_name') || '';
+                    const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+                    set('acc-detail-name', fullName);
+                    set('acc-holder-name', fullName);
+                    set('credit-card-name', fullName.toUpperCase());
+                    set('debit-card-name', fullName.toUpperCase());
+                }
                 if (mode === 'markets') {
                    initMarkets();
                    showSection('section-markets');
