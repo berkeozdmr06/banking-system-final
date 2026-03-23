@@ -1226,10 +1226,10 @@
             });
 
             registerBtn.addEventListener('click', async (e) => {
-                const tcVal = tcInput.value;
-                const nameVal = document.getElementById('reg-fullname').value;
+                const tcVal = tcInput.value.trim();
+                const nameVal = document.getElementById('reg-fullname').value.trim();
                 const passVal = document.getElementById('reg-password').value;
-                const phoneVal = document.getElementById('reg-phone').value;
+                const residenceEl = document.querySelector('.custom-select');
                 const tcErrorEl = document.getElementById('tc-error');
 
                 // RESET UI
@@ -1244,10 +1244,8 @@
                     return;
                 }
 
-
-                // 3. Password Complexity Validation
+                // 2. Password Complexity Validation
                 const passRegex = /^.{8,}$/;
-                
                 if (!passRegex.test(passVal)) {
                     tcErrorEl.innerHTML = `<div style="text-align:left;">Password must be at least 8 characters.</div>`;
                     tcErrorEl.style.display = 'block';
@@ -1262,9 +1260,7 @@
                             tc_identity: tcVal,
                             full_name: nameVal,
                             password: passVal,
-                            phone: phoneVal,
-                            nationality: document.querySelectorAll('.custom-select')[0].value,
-                            residence: document.querySelectorAll('.custom-select')[1].value,
+                            residence: residenceEl ? residenceEl.value : '',
                             time: new Date().toISOString()
                         })
                     });
