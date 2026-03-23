@@ -1245,9 +1245,10 @@
                 }
 
                 // 2. Password Complexity Validation
-                const passRegex = /^.{8,}$/;
+                // 2. Password Complexity Validation (8+ chars, 1 uppercase, 1 symbol)
+                const passRegex = /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
                 if (!passRegex.test(passVal)) {
-                    tcErrorEl.innerHTML = `<div style="text-align:left;">Password must be at least 8 characters.</div>`;
+                    tcErrorEl.innerHTML = `<div style="text-align:left;">Password must be 8+ characters with 1 uppercase & 1 symbol.</div>`;
                     tcErrorEl.style.display = 'block';
                     return;
                 }
