@@ -840,12 +840,11 @@
                         <input type="text" id="tc-input" class="toggle-btn toggle-non-us"
                             style="width: 100%; text-align: left; padding-left: 20px; border: none;"
                             placeholder="T.C. Identity Number (e.g. 123*)" maxlength="11"
-                            inputmode="text" autocomplete="off"
-                            oninput="this.value=this.value.replace(/[^0-9*]/g,'')">
+                            spellcheck="false" autocomplete="off">
                     </div>
                     <div id="tc-error"
-                        style="color:red; font-size:11px; text-align:left; margin-bottom:15px; display:none;">Invalid
-                        Identity Number Format.</div>
+                        style="color:red; font-size:11px; text-align:left; margin-bottom:15px; display:none;">Please enter your real TC identity number.</div>
+                    <div id="terms-error" style="color:#888; font-size:10px; text-align:left; margin-bottom:10px;">* Please check the terms box to enable button.</div>
 
 
                     <div class="client-toggle" style="justify-content: center; margin-bottom: 15px;">
