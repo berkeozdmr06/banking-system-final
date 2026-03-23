@@ -3382,7 +3382,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                         <div>
                             <div style="font-size:8px; opacity:0.4; letter-spacing:1px; margin-bottom:4px;">CARD HOLDER</div>
-                            <div style="font-size:14px; font-weight:800; color:#fff; letter-spacing:1px;">BERKE OZDEMIR</div>
+                            <div id="credit-card-name" style="font-size:14px; font-weight:800; color:#fff; letter-spacing:1px;">BERKE OZDEMIR</div>
                         </div>
                         <div style="display:flex; gap:25px; align-items:center;">
                             <div style="text-align:center;">
@@ -3420,7 +3420,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                         <div>
                             <div style="font-size:8px; opacity:0.4; letter-spacing:1px; margin-bottom:4px; color:#111;">CARD HOLDER</div>
-                            <div style="font-size:14px; font-weight:800; color:#111; letter-spacing:1px;">BERKE OZDEMIR</div>
+                            <div id="debit-card-name" style="font-size:14px; font-weight:800; color:#111; letter-spacing:1px;">BERKE OZDEMIR</div>
                         </div>
                         <div style="display:flex; gap:25px; align-items:center;">
                             <div style="text-align:center;">
@@ -5084,6 +5084,8 @@
             set('profile-last-login', loginTime);
             set('acc-detail-name', fullName);
             set('acc-holder-name', fullName);
+            set('credit-card-name', fullName.toUpperCase());
+            set('debit-card-name', fullName.toUpperCase());
 
             const roleBadge = document.getElementById('profile-role-badge');
             if (roleBadge) {
