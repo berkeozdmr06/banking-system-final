@@ -4727,31 +4727,11 @@
                         APP_STATE.startingBalance = APP_STATE.balance + (APP_STATE.investmentBalance || 0);
                     }
                     
-                    // --- PREMIUM PORTFOLIO SEEDING (FOR DEMONSTRATION OF PNL) ---
-                    if (!APP_STATE.portfolio || APP_STATE.portfolio.length === 0) {
-                        // Generate a pseudo-random seed based on TC for unique but consistent starting portfolios
-                        const tcStr = String(APP_STATE.tc_identity || '000');
-                        let seed = 0;
-                        for(let i=0; i<tcStr.length; i++) seed += tcStr.charCodeAt(i);
-                        
-                        const getQty = (base) => Math.floor(base * (0.5 + (seed % 100) / 50));
-                        
-                        APP_STATE.portfolio = [
-                            { symbol: 'trenj.is', name: 'Trendyol Group', qty: getQty(2500), avgPrice: 125.40 },
-                            { symbol: 'aapl', name: 'Apple Inc.', qty: getQty(150), avgPrice: 150.20 },
-                            { symbol: 'nvda', name: 'Nvidia', qty: getQty(45), avgPrice: 105.00 },
-                            { symbol: 'btc', name: 'Bitcoin', qty: (getQty(125)/100), avgPrice: 70500.00 }
-                        ];
-                        
-                        // Auto-sync underlying investment balance with the active mock portfolio
-                        let injectedValue = 0;
-                        APP_STATE.portfolio.forEach(p => injectedValue += (p.qty * p.avgPrice));
-                        APP_STATE.investmentBalance = injectedValue;
-                        
-                        // Recalculate start boundaries
-                        APP_STATE.startingBalance = APP_STATE.balance + APP_STATE.investmentBalance;
-                        syncStateWithBackend();
+                    // Initialize starting balance tracking
+                    if (!APP_STATE.startingBalance) {
+                        APP_STATE.startingBalance = APP_STATE.balance + (APP_STATE.investmentBalance || 0);
                     }
+                    
                     updateUI();
                     
                     // RBAC UI Injection
