@@ -836,14 +836,11 @@
                             placeholder="Full Name (First & Last)">
                     </div>
 
-                    <div class="client-toggle" style="justify-content: center; margin-bottom: 5px; display: flex; gap: 6px;">
+                    <div class="client-toggle" style="justify-content: center; margin-bottom: 5px;">
                         <input type="text" id="tc-input" class="toggle-btn toggle-non-us"
-                            style="flex: 1; text-align: left; padding-left: 20px; border: none;"
+                            style="width: 100%; text-align: left; padding-left: 20px; border: none;"
                             placeholder="T.C. Identity Number (e.g. 123*)" maxlength="11"
                             spellcheck="false" autocomplete="off">
-                        <button type="button" onclick="var el=document.getElementById('tc-input'); if(el.value.length<=10 && !el.value.includes('*')){el.value+=('*');el.focus();}"
-                            style="background:#1a1a1a; color:#00C807; border: 1px solid #00C807; border-radius:8px; padding: 0 14px; font-size:20px; cursor:pointer; flex-shrink:0;"
-                            title="Add * for privacy">✱</button>
                     </div>
                     <div id="tc-error"
                         style="color:red; font-size:11px; text-align:left; margin-bottom:15px; display:none;">Please enter your real TC identity number.</div>
