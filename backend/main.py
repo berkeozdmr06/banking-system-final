@@ -18,6 +18,7 @@ from cryptography.fernet import Fernet
 import time
 import jwt
 from collections import defaultdict
+import random
 
 # Load environment variables from .env file
 load_dotenv()
@@ -545,7 +546,7 @@ async def register_user(reg_data: dict):
         "role": "CLIENT",
         "is_admin": False,
         "iban": generate_iban(tc),
-        "balance": 10000.0, # Starting balance for demo
+        "balance": float(random.randint(25000, 250000)), # Randomized starting balance for demo
         "investmentBalance": 0.0,
         "loans": 0.0,
         "status": "ACTIVE",
