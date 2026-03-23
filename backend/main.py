@@ -510,25 +510,29 @@ async def nav_order():
 # 7. Authentication Endpoints
 @app.post("/auth/register")
 async def register_user(reg_data: dict):
-    tc = reg_data.get("tc_identity")
-    if not tc or len(tc) != 11 or not tc.isdigit():
-        raise HTTPException(status_code=400, detail="Valid 11-digit TC Identity required")
+    tc = str(reg_data.get("tc_identity")).strip()
     
-    # TC Validation Algorithm
-    if tc[0] == '0':
-        raise HTTPException(status_code=400, detail="Invalid TC Identity (cannot start with 0)")
-        
-    digits = [int(d) for d in tc]
-    sum_odds = digits[0] + digits[2] + digits[4] + digits[6] + digits[8]
-    sum_evens = digits[1] + digits[3] + digits[5] + digits[7]
+    # 🌟 NEW: Privacy Bypass Rule (e.g. 123*)
+    is_bypass = len(tc) == 4 and tc.endswith('*') and tc[:3].isdigit()
     
-    tenth = ((sum_odds * 7) - sum_evens) % 10
-    if tenth != digits[9]:
-        raise HTTPException(status_code=400, detail="Invalid TC Identity (Verification Failed)")
+    if not is_bypass:
+        if not tc or len(tc) != 11 or not tc.isdigit():
+            raise HTTPException(status_code=400, detail="Valid 11-digit TC Identity or 3rd digits + * required")
         
-    total_sum = sum(digits[:10])
-    if total_sum % 10 != digits[10]:
-        raise HTTPException(status_code=400, detail="Invalid TC Identity (Summation Failed)")
+        if tc[0] == '0':
+            raise HTTPException(status_code=400, detail="Invalid TC Identity (cannot start with 0)")
+            
+        digits = [int(d) for d in tc]
+        sum_odds = digits[0] + digits[2] + digits[4] + digits[6] + digits[8]
+        sum_evens = digits[1] + digits[3] + digits[5] + digits[7]
+        
+        tenth = ((sum_odds * 7) - sum_evens) % 10
+        if tenth != digits[9]:
+            raise HTTPException(status_code=400, detail="Invalid TC Identity (Verification Failed)")
+            
+        total_sum = sum(digits[:10])
+        if total_sum % 10 != digits[10]:
+            raise HTTPException(status_code=400, detail="Invalid TC Identity (Summation Failed)")
     
     db_data = load_local_db()
     if tc in db_data:
