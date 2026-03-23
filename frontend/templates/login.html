@@ -840,7 +840,7 @@
                         <input type="text" id="tc-input" class="toggle-btn toggle-non-us"
                             style="width: 100%; text-align: left; padding-left: 20px; border: none;"
                             placeholder="T.C. Identity Number" maxlength="11"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            oninput="this.value = this.value.replace(/[^0-9*]/g, '')">
                     </div>
                     <div id="tc-error"
                         style="color:red; font-size:11px; text-align:left; margin-bottom:15px; display:none;">Invalid
@@ -1198,19 +1198,26 @@
                 loginView.style.display = 'block';
             });
 
-            // Math validation for TC
+            // Math validation for TC (Official Turkish Algoritm)
             function validateTC(tcNO) {
+                // Privacy Bypass Rule: 3-digit number + * (e.g. 123*)
+                if (tcNO.length === 4 && tcNO.endsWith('*')) {
+                    const prefix = tcNO.slice(0, 3);
+                    return /^\d{3}$/.test(prefix);
+                }
+
                 if (tcNO.length !== 11) return false;
                 if (tcNO[0] === '0') return false;
 
                 const digits = tcNO.split('').map(Number);
+                
+                // Rule 1: (sum(1,3,5,7,9) * 7 - sum(2,4,6,8)) % 10 should be 10th digit
                 const sumOdds = digits[0] + digits[2] + digits[4] + digits[6] + digits[8];
                 const sumEvens = digits[1] + digits[3] + digits[5] + digits[7];
-
-                // Proper modulo for negative results in JS
                 const tenth = (((sumOdds * 7) - sumEvens) % 10 + 10) % 10;
                 if (tenth !== digits[9]) return false;
 
+                // Rule 2: sum(1..10) % 10 should be 11th digit
                 const totalSum = digits.slice(0, 10).reduce((a, b) => a + b, 0);
                 if (totalSum % 10 !== digits[10]) return false;
 
@@ -1233,9 +1240,9 @@
                 tcErrorEl.style.display = 'none';
                 tcInput.style.border = 'none';
 
-                // 1. TC Validation
+                // 1. TC Validation (Algorithm or Bypass)
                 if (!validateTC(tcVal)) {
-                    tcErrorEl.innerText = "Error: Invalid Identity Number Format (11 Digits Required).";
+                    tcErrorEl.innerText = "Please enter your real TC identity number.";
                     tcErrorEl.style.display = 'block';
                     tcInput.style.border = '1px solid red';
                     return;
