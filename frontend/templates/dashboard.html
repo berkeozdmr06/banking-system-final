@@ -2751,12 +2751,6 @@
                 </div>
             </div>
 
-            <!-- USER GREETING & PROFILE -->
-            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="navigateApp('profile')">
-                <span id="nav-user-greeting" style="font-size: 13px; font-weight: 700; color: #fff; letter-spacing: -0.2px; opacity: 0.9;">Hello, User</span>
-                <div id="nav-avatar-circle" style="width: 28px; height: 28px; background: #1a1a1a; color: var(--rh-green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 1px solid #333; text-transform: uppercase;">U</div>
-            </div>
-
             <div style="width: 1px; height: 18px; background: rgba(255,255,255,0.1); margin: 0 8px;"></div>
 
             <!-- AI SUPPORT ICON -->
@@ -5072,12 +5066,6 @@
             const avatarEl = document.getElementById('profile-avatar-letter');
             if (avatarEl) avatarEl.innerText = initial;
 
-            const navGreeting = document.getElementById('nav-user-greeting');
-            if (navGreeting) navGreeting.innerText = `Hello, ${fullName.split(' ')[0]}`;
-
-            const navAvatar = document.getElementById('nav-avatar-circle');
-            if (navAvatar) navAvatar.innerText = initial;
-
             const nameDisplay = document.getElementById('profile-username-display');
             if (nameDisplay) nameDisplay.innerText = fullName.toUpperCase();
 
@@ -5314,13 +5302,6 @@
             
             const tcEl = document.getElementById('tc-identity');
             if (tcEl) tcEl.innerText = APP_STATE.tc_identity;
-
-            // Update Global Greeting & Avatar
-            const fullName = APP_STATE.full_name || localStorage.getItem('active_name') || 'Valuable Client';
-            const navGreeting = document.getElementById('nav-user-greeting');
-            if (navGreeting) navGreeting.innerText = `Hello, ${fullName.split(' ')[0]}`;
-            const navAvatar = document.getElementById('nav-avatar-circle');
-            if (navAvatar) navAvatar.innerText = fullName.trim().charAt(0).toUpperCase();
 
             // Update portfolio and ledger if active
             if (APP_STATE.activeMode === 'portfolio') updatePortfolio();
