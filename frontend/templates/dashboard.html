@@ -2777,9 +2777,9 @@
                     style="background: var(--rh-green); color: #000; width: 14px; height: 14px; font-size: 9px; right: -8px; top: -5px; display:none;">0</span>
             </div>
 
-            <!-- USER PROFILE ICON (matches bell style) -->
-            <div class="notification-wrap" onclick="renderProfile(); navigateApp('profile', this)"
-                title="User Profile & Audit Console" style="cursor:pointer;">
+            <!-- USER PROFILE ICON (admin only) -->
+            <div id="user-profile-icon" class="notification-wrap" onclick="renderProfile(); navigateApp('profile', this)"
+                title="User Profile & Audit Console" style="cursor:pointer; display:none;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="1.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -5059,6 +5059,10 @@
             const maskedTC = tc.length >= 5
                 ? tc.slice(0, 3) + '•'.repeat(tc.length - 5) + tc.slice(-2)
                 : tc;
+
+            // Show profile icon only for admins
+            const profileIcon = document.getElementById('user-profile-icon');
+            if (profileIcon) profileIcon.style.display = APP_STATE.is_admin ? 'flex' : 'none';
 
             // Avatar letter & Name Sync
             const initial = fullName.trim().charAt(0).toUpperCase();
