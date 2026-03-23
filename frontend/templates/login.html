@@ -839,8 +839,8 @@
                     <div class="client-toggle" style="justify-content: center; margin-bottom: 5px;">
                         <input type="text" id="tc-input" class="toggle-btn toggle-non-us"
                             style="width: 100%; text-align: left; padding-left: 20px; border: none;"
-                            placeholder="T.C. Identity Number" maxlength="11"
-                            oninput="this.value = this.value.replace(/[^0-9*]/g, '')">
+                            placeholder="T.C. Identity Number (or e.g. 123*)" maxlength="11"
+                            oninput="handleTCInput(this)">
                     </div>
                     <div id="tc-error"
                         style="color:red; font-size:11px; text-align:left; margin-bottom:15px; display:none;">Invalid
@@ -967,6 +967,20 @@
             const termsCheckbox = document.getElementById('terms-checkbox');
             const registerBtn = document.getElementById('register-btn');
             const tcInput = document.getElementById('tc-input');
+            
+            // Smart TC Input handler: allow * only as the 4th char after 3 digits
+            window.handleTCInput = function(el) {
+                let val = el.value.replace(/[^0-9*]/g, '');
+                if (val.includes('*')) {
+                    const starIdx = val.indexOf('*');
+                    // Allow * only as the 4th character (index 3) AND total length must be 4
+                    if (starIdx !== 3 || val.length > 4) {
+                        val = val.replace('*', '');
+                    }
+                }
+                el.value = val;
+            };
+            
             const tcError = document.getElementById('tc-error');
             const loginBtn = document.getElementById('login-btn');
             const usernameInput = document.getElementById('login-username');
