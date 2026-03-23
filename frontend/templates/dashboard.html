@@ -5082,6 +5082,8 @@
             set('profile-tc-display', maskedTC);
             set('profile-phone-display', phone ? phone.replace(/(\d{3})(\d+)(\d{2})/, '$1••••••$3') : '—');
             set('profile-last-login', loginTime);
+            set('acc-detail-name', fullName);
+            set('acc-holder-name', fullName);
 
             const roleBadge = document.getElementById('profile-role-badge');
             if (roleBadge) {
