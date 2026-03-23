@@ -5312,18 +5312,38 @@
             if (tcEl) tcEl.innerText = APP_STATE.tc_identity;
 
             // Update portfolio and ledger if active
-            if (APP_STATE.activeMode === 'portfolio') updatePortfolio();
-            if (APP_STATE.activeMode === 'account') renderHistory(); 
-            if (APP_STATE.activeMode === 'ledger') renderLedger();
-            if (APP_STATE.activeMode === 'admin') renderAdminAudit();
-            if (APP_STATE.activeMode === 'profile') {
-                renderProfile();
-                renderProfileSecurityLogs();
-            }
+            // RBAC: Show/Hide Profile Icon & Admin Console
+            const profileIcon = document.getElementById('user-profile-icon');
+            if (profileIcon) profileIcon.style.display = APP_STATE.is_admin ? 'flex' : 'none';
+            
+            const hub = document.getElementById('admin-hub-card');
+            const dashboardHub = document.getElementById('admin-dashboard-hub');
+            if (hub) hub.style.display = APP_STATE.is_admin ? 'flex' : 'none';
+            if (dashboardHub) dashboardHub.style.display = APP_STATE.is_admin ? 'flex' : 'none';
+
+            // Sync Name Elements
+            updateNameElements();
             
             // Critical: Always refresh global values across widgets
             updateGlobalBalances();
             renderInsuranceCoverage();
+        }
+
+        function updateNameElements() {
+            const fullName = APP_STATE.full_name || localStorage.getItem('active_name') || 'Valuable Client';
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            
+            set('acc-detail-name', fullName);
+            set('acc-holder-name', fullName);
+            set('credit-card-name', fullName.toUpperCase());
+            set('debit-card-name', fullName.toUpperCase());
+
+            const initial = fullName.trim().charAt(0).toUpperCase();
+            const avatarEl = document.getElementById('profile-avatar-letter');
+            if (avatarEl) avatarEl.innerText = initial;
+
+            const nameDisplay = document.getElementById('profile-username-display');
+            if (nameDisplay) nameDisplay.innerText = fullName.toUpperCase();
         }
 
         let heroOdometer = null;
@@ -6213,10 +6233,7 @@
         function navigateApp(mode, navElement) {
             if (mode === 'cards') {
                 initCards();
-                const fullName = APP_STATE.full_name || localStorage.getItem('active_name') || '';
-                const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-                setEl('credit-card-name', fullName.toUpperCase());
-                setEl('debit-card-name', fullName.toUpperCase());
+                updateNameElements();
             }
             APP_STATE.activeMode = mode;
             document.querySelectorAll('.navbar .nav-link').forEach(el => el.classList.remove('active-green'));
@@ -6297,12 +6314,7 @@
                 }
                 if (mode === 'account') {
                     renderHistory();
-                    const fullName = APP_STATE.full_name || localStorage.getItem('active_name') || '';
-                    const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
-                    set('acc-detail-name', fullName);
-                    set('acc-holder-name', fullName);
-                    set('credit-card-name', fullName.toUpperCase());
-                    set('debit-card-name', fullName.toUpperCase());
+                    updateNameElements();
                 }
                 if (mode === 'markets') {
                    initMarkets();
